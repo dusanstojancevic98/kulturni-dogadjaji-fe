@@ -1,13 +1,10 @@
-import { useAuth } from "../../store/authStoreProxy";
+import { Box, Typography } from "@mui/material";
 
-export default function Dashboard() {
-  const { accessToken, setAccessToken } = useAuth();
-
+export default function DashboardPage() {
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Token: {accessToken}</p>
-      <button onClick={() => setAccessToken("dummy-token")}>Set Token</button>
-    </div>
+    <Box textAlign="center" mt={10}>
+      <Typography variant="h4">Dobrodošao na Dashboard!</Typography>
+      <Typography variant="body1">Ovo je zaštićena stranica.</Typography>
+    </Box>
   );
 }

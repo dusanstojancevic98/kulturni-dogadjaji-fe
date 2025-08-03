@@ -1,6 +1,6 @@
 import type { User } from "@src/store/auth/auth.state";
 import { isAxiosError } from "axios";
-import api, { type ApiError } from "./api";
+import { api, type ApiError } from "./api";
 
 interface LoginPayload {
   email: string;
@@ -9,9 +9,21 @@ interface LoginPayload {
 
 interface LoginResponse {
   access_token: string;
-  refresh_roken: string;
+  refresh_token: string;
   user: User;
 }
+
+type RegisterResponse = {
+  access_token: string;
+  refresh_token: string;
+  user: User;
+};
+
+type AuthResponse = {
+  access_token: string;
+  refresh_token: string;
+  user: User;
+};
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   try {
@@ -31,3 +43,20 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     throw error;
   }
 }
+
+export const register = async (data: {
+  email: string;
+  name: string;
+  password: string;
+}): Promise<RegisterResponse> => {
+  const response = await api.post("/auth/register", data);
+  return response.data;
+};
+
+export const refresh = async (data: {
+  userId: string;
+  refresh_token: string;
+}): Promise<AuthResponse> => {
+  const response = await api.post("/auth/refresh", data);
+  return response.data;
+};

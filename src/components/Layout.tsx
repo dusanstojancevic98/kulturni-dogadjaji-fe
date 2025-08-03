@@ -10,11 +10,15 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
+import { ROUTES } from "@src/constants/routes";
+import { useAuthInit } from "@src/hooks/useAuthInit";
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
 
 export default function Layout() {
   const [open, setOpen] = React.useState(false);
+
+  useAuthInit();
 
   return (
     <>
@@ -37,10 +41,10 @@ export default function Layout() {
       <Drawer open={open} onClose={() => setOpen(false)}>
         <Box sx={{ width: 250 }} onClick={() => setOpen(false)}>
           <List>
-            <ListItemButton component={Link} to="/">
+            <ListItemButton component={Link} to={ROUTES.DASHBOARD}>
               <ListItemText primary="Početna" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/login">
+            <ListItemButton component={Link} to={ROUTES.LOGIN}>
               <ListItemText primary="Prijava" />
             </ListItemButton>
           </List>

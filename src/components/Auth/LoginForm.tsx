@@ -1,23 +1,37 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
-import { login } from "@src/services/auth.api";
-import { setAuthState } from "@src/store/authStoreProxy";
-import { useState } from "react";
+import { ROUTES } from "@src/constants/routes";
+import { useAuth } from "@src/store/auth/auth.store";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+
+const schema = z.object({
+  email: z.email(),
+  password: z.string().min(8),
+});
+
+type LoginInput = z.infer<typeof schema>;
 
 export const LoginForm = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm<LoginInput>({
+    resolver: zodResolver(schema),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: LoginInput) => {
     try {
-      const { user, access_token } = await login({ email, password });
-      setAuthState(user, access_token);
-      navigate("/");
+      await login(data.email, data.password);
+      navigate(ROUTES.DASHBOARD);
     } catch {
-      setError("Pogrešan email ili lozinka.");
+      setError("email", { message: "Pogrešan email ili lozinka" });
+      setError("password", { message: " " });
     }
   };
 
@@ -28,27 +42,25 @@ export const LoginForm = () => {
       </Typography>
       <Box
         component="form"
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
         <TextField
           label="Email"
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email")}
+          error={!!errors.email}
+          helperText={errors.email?.message}
         />
         <TextField
           label="Lozinka"
           type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          {...register("password")}
+          error={!!errors.password}
+          helperText={errors.password?.message}
         />
         <Button variant="contained" type="submit">
           Prijavi se
         </Button>
-        {error && <Typography color="error">{error}</Typography>}
       </Box>
     </Paper>
   );
