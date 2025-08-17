@@ -9,7 +9,7 @@ export interface ApiError {
 
 export const api = axios.create({
   baseURL: "http://localhost:3000",
-  withCredentials: true, // za refresh cookie
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
