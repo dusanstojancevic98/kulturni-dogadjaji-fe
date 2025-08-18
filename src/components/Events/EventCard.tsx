@@ -1,19 +1,43 @@
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
   Box,
   Card,
   CardContent,
   CardMedia,
   Chip,
+  IconButton,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import { getDate } from "@src/helper/date";
+import { ROUTES } from "@src/constants/routes";
 import { EventTypeLabels, type Event } from "@src/models/event.types";
+import { useAuth } from "@src/store/auth/auth.store";
+import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 
-export const EventCard = ({ event }: { event: Event }) => {
-  const dt = getDate(event.dateTime);
+type Props = {
+  event: Event;
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
+};
+
+export const EventCard = ({
+  event,
+  isFavorited = false,
+  onToggleFavorite,
+}: Props) => {
+  const dt = dayjs(event.dateTime).format("DD.MM.YYYY HH:mm");
+  const { accessToken } = useAuth();
   const navigate = useNavigate();
 
+  const handleFavClick = () => {
+    if (!accessToken) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
+    onToggleFavorite?.();
+  };
   const handleCardClick = () => {
     navigate(`/events/${event.id}`);
   };
@@ -24,6 +48,7 @@ export const EventCard = ({ event }: { event: Event }) => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         cursor: "pointer",
       }}
       onClick={handleCardClick}
@@ -36,6 +61,24 @@ export const EventCard = ({ event }: { event: Event }) => {
           alt={event.title}
         />
       )}
+
+      <IconButton
+        onClick={handleFavClick}
+        sx={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          bgcolor: "background.paper",
+        }}
+        aria-label={isFavorited ? "Ukloni iz omiljenih" : "Sačuvaj u omiljene"}
+      >
+        {isFavorited ? (
+          <FavoriteIcon sx={{ color: "red" }} />
+        ) : (
+          <FavoriteBorderIcon />
+        )}
+      </IconButton>
+
       <CardContent sx={{ flexGrow: 1 }}>
         <Typography variant="h6" sx={{ textDecoration: "none" }}>
           {event.title}
@@ -58,6 +101,11 @@ export const EventCard = ({ event }: { event: Event }) => {
               variant="outlined"
               label={event.institution.name}
             />
+          )}
+          {typeof event._count?.favorites === "number" && (
+            <Tooltip title="Broj omiljenih">
+              <Chip size="small" label={`${event._count.favorites} ❤️`} />
+            </Tooltip>
           )}
         </Box>
       </CardContent>

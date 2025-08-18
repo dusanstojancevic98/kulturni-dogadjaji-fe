@@ -4,6 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { store } from "@src/store/redux/store";
 import "dayjs/locale/sr";
 import { Provider } from "react-redux";
+import { SnackbarProvider } from "./components/common/snackbar/SnachbarProvider";
 import { AppRoutes } from "./routes";
 
 const theme = createTheme({
@@ -27,7 +28,9 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="sr">
-          <AppRoutes />
+          <SnackbarProvider>
+            <AppRoutes />
+          </SnackbarProvider>
         </LocalizationProvider>
       </ThemeProvider>
     </Provider>

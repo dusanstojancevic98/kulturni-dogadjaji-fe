@@ -1,3 +1,4 @@
+// src/pages/events/EventsListPage.tsx
 import {
   Box,
   Button,
@@ -11,6 +12,7 @@ import { EventFiltersBar } from "@src/components/Events/EventFilter";
 import { ROUTES } from "@src/constants/routes";
 import type { Event, EventFilters, Paginated } from "@src/models/event.types";
 import { getEvents } from "@src/services/events.api";
+import { getMyFavoriteIds, toggleFavorite } from "@src/services/favorites.api";
 import { useAuth } from "@src/store/auth/auth.store";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -24,6 +26,7 @@ export const EventsListPage = () => {
   });
   const [filters, setFilters] = useState<EventFilters>({});
   const { accessToken } = useAuth();
+  const [favIds, setFavIds] = useState<Set<string>>(new Set());
 
   const load = async (page = 1) => {
     const res = await getEvents(page, data.pageSize, filters);
@@ -33,6 +36,31 @@ export const EventsListPage = () => {
   useEffect(() => {
     load(1);
   }, [JSON.stringify(filters)]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setFavIds(new Set());
+      return;
+    }
+    (async () => {
+      const ids = await getMyFavoriteIds();
+      setFavIds(new Set(ids));
+    })();
+  }, [accessToken]);
+
+  const handleToggleFav = async (id: string) => {
+    if (!accessToken) return;
+    const favorited = await toggleFavorite(id);
+    setFavIds((prev) => {
+      const next = new Set(prev);
+      if (favorited) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  };
 
   return (
     <Container sx={{ py: 4 }}>
@@ -55,7 +83,11 @@ export const EventsListPage = () => {
       <Grid container spacing={2}>
         {data.items.map((ev) => (
           <Grid key={ev.id} size={{ xs: 12, sm: 6, md: 4 }}>
-            <EventCard event={ev} />
+            <EventCard
+              event={ev}
+              isFavorited={favIds.has(ev.id)}
+              onToggleFavorite={() => void handleToggleFav(ev.id)}
+            />
           </Grid>
         ))}
       </Grid>
