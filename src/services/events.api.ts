@@ -47,3 +47,8 @@ export const deleteEvent = async (id: string): Promise<{ ok: true }> => {
   const res = await api.delete(`/events/${id}`);
   return res.data;
 };
+
+export const getMyEvents = async (): Promise<Event[]> => {
+  const res = await api.get("/events/my");
+  return res.data;
+};

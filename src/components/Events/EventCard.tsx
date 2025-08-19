@@ -62,23 +62,29 @@ export const EventCard = ({
         />
       )}
 
-      <IconButton
-        onClick={handleFavClick}
-        sx={{
-          position: "absolute",
-          top: 8,
-          right: 8,
-          bgcolor: "background.paper",
-        }}
-        aria-label={isFavorited ? "Ukloni iz omiljenih" : "Sačuvaj u omiljene"}
-      >
-        {isFavorited ? (
-          <FavoriteIcon sx={{ color: "red" }} />
-        ) : (
-          <FavoriteBorderIcon />
-        )}
-      </IconButton>
-
+      {onToggleFavorite && (
+        <IconButton
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFavClick();
+          }}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            bgcolor: "background.paper",
+          }}
+          aria-label={
+            isFavorited ? "Ukloni iz omiljenih" : "Sačuvaj u omiljene"
+          }
+        >
+          {isFavorited ? (
+            <FavoriteIcon sx={{ color: "red" }} />
+          ) : (
+            <FavoriteBorderIcon />
+          )}
+        </IconButton>
+      )}
       <CardContent sx={{ flexGrow: 1 }}>
         <Typography variant="h6" sx={{ textDecoration: "none" }}>
           {event.title}

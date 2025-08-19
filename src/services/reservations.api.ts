@@ -1,3 +1,4 @@
+import type { Event } from "@src/models/event.types";
 import { api } from "@src/services/api";
 
 export const reserveEvent = async (eventId: string) => {
@@ -13,13 +14,7 @@ export const cancelReservation = async (eventId: string) => {
 export const myReservations = async () => {
   const res = await api.get(`/reservations/me`);
   return res.data as Array<{
-    event: {
-      id: string;
-      title: string;
-      dateTime: string;
-      imageUrl: string;
-      type: string;
-    };
+    event: Event;
     createdAt: string;
   }>;
 };

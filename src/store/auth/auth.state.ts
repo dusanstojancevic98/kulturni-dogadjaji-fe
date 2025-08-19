@@ -10,6 +10,12 @@ export enum UserRole {
   ADMIN = "ADMIN",
 }
 
+export const UserRoleLabel = {
+  [UserRole.VISITOR]: "Posetilac",
+  [UserRole.ORGANIZER]: "Organizator",
+  [UserRole.ADMIN]: "Administrator",
+};
+
 export interface AuthState {
   user: User | null;
   accessToken: string | null;

@@ -50,14 +50,8 @@ export type EventFilters = {
   from?: string;
   to?: string;
   institutionId?: string;
-  createdById?: string;
   page?: number;
   pageSize?: number;
-};
-
-export type Paginated<T> = {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
+  sort?: "date" | "title" | "favorites" | "reservations";
+  order?: "asc" | "desc";
 };

@@ -1,15 +1,17 @@
 import { Box, CircularProgress } from "@mui/material";
 import { ROUTES } from "@src/constants/routes";
+import type { UserRole } from "@src/store/auth/auth.state";
 import { useAuth } from "@src/store/auth/auth.store";
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
 type Props = {
   children: ReactNode;
+  roles?: UserRole[];
 };
 
-export const ProtectedRoute = ({ children }: Props) => {
-  const { accessToken, authInitialized } = useAuth();
+export const ProtectedRoute = ({ children, roles }: Props) => {
+  const { accessToken, authInitialized, user } = useAuth();
   if (!authInitialized) {
     return (
       <Box
@@ -23,8 +25,12 @@ export const ProtectedRoute = ({ children }: Props) => {
     );
   }
 
-  if (!accessToken) {
+  if (!accessToken || !user) {
     return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+
+  if (roles && roles.length > 0 && !roles.includes(user.role)) {
+    return <Navigate to={ROUTES.NOT_FOUND} replace />;
   }
 
   return <>{children}</>;

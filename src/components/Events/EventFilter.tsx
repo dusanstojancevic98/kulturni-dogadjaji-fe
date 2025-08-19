@@ -1,21 +1,12 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from "@mui/material";
-import { DateFormat } from "@src/helper/date";
+import { Button, MenuItem, Stack, TextField } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import type { EventFilters } from "@src/models/event.types";
 import { EventType, EventTypeLabels } from "@src/models/event.types";
-import type { Institution } from "@src/models/institution.types";
-import { getInstitutions } from "@src/services/institutions.api";
-import dayjs, { type Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
-import { CustomDatePicker } from "../DatePicker";
+import type { InstitutionOption } from "@src/models/institution.types";
+import { getInstitutionsSelect } from "@src/services/institutions.api";
+import dayjs, { Dayjs } from "dayjs";
+import * as React from "react";
+import { useEffect } from "react";
 
 type Props = {
   defaultValues?: EventFilters;
@@ -23,112 +14,153 @@ type Props = {
 };
 
 const DEFAULT_INSTITUTION_ID = "Sve";
-
-export const EventFiltersBar = ({ defaultValues, onChange }: Props) => {
-  const [q, setQ] = useState(defaultValues?.q ?? "");
-  const [type, setType] = useState<EventType | "">(defaultValues?.type ?? "");
-  const [from, setFrom] = useState<Dayjs | null>(
+export const EventFiltersBar: React.FC<Props> = ({
+  defaultValues,
+  onChange,
+}) => {
+  const [q, setQ] = React.useState<string>(defaultValues?.q ?? "");
+  const [type, setType] = React.useState<EventFilters["type"]>(
+    defaultValues?.type
+  );
+  const [institutionId, setInstitutionId] = React.useState<string | undefined>(
+    defaultValues?.institutionId
+  );
+  const [from, setFrom] = React.useState<Dayjs | null>(
     defaultValues?.from ? dayjs(defaultValues.from) : null
   );
-  const [to, setTo] = useState<Dayjs | null>(
+  const [to, setTo] = React.useState<Dayjs | null>(
     defaultValues?.to ? dayjs(defaultValues.to) : null
   );
-  const [institutionId, setInstitutionId] = useState(
-    defaultValues?.institutionId ?? ""
-  );
-  const [institutions, setInstitutions] = useState<Institution[]>([]);
 
-  useEffect(() => {
-    (async () => setInstitutions(await getInstitutions()))();
+  const [institutions, setInstitutions] = React.useState<InstitutionOption[]>(
+    []
+  );
+
+  React.useEffect(() => {
+    (async () => {
+      const list = await getInstitutionsSelect();
+      setInstitutions(list);
+    })();
   }, []);
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const fromIso = from ? from.startOf("day").toISOString() : undefined;
-    const toIso = to ? to.endOf("day").toISOString() : undefined;
+  const emit = React.useCallback(
+    (next?: Partial<EventFilters>) => {
+      const filters: EventFilters = {
+        q,
+        type,
+        institutionId:
+          institutionId === DEFAULT_INSTITUTION_ID ? undefined : institutionId,
+        from: from ? from.toISOString() : undefined,
+        to: to ? to.toISOString() : undefined,
+        ...next,
+      };
+      onChange(filters);
+    },
+    [q, type, institutionId, from, to, onChange]
+  );
 
-    onChange({
-      q: q || undefined,
-      type: (type as EventType) || undefined,
-      from: fromIso,
-      to: toIso,
-      institutionId:
-        institutionId === DEFAULT_INSTITUTION_ID ? undefined : institutionId,
-    });
+  useEffect(() => {
+    const t = setTimeout(() => emit(), 350);
+    return () => clearTimeout(t);
+  }, [q, emit]);
+
+  const onTypeChange = (val: EventFilters["type"]) => {
+    setType(val);
+    emit({ type: val });
+  };
+
+  const onInstitutionChange = (val?: string) => {
+    setInstitutionId(val || undefined);
+    emit({ institutionId: val || undefined });
+  };
+
+  const onFromChange = (val: Dayjs | null) => {
+    setFrom(val);
+    emit({ from: val ? val.toISOString() : undefined });
+  };
+
+  const onToChange = (val: Dayjs | null) => {
+    setTo(val);
+    emit({ to: val ? val.toISOString() : undefined });
+  };
+
+  const clearAll = () => {
+    setQ("");
+    setType(undefined);
+    setInstitutionId(undefined);
+    setFrom(null);
+    setTo(null);
+    onChange({});
   };
 
   return (
-    <Box component="form" onSubmit={submit} sx={{ mb: 2 }}>
-      <Grid
-        container
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        alignItems="center"
+    <Stack
+      direction={{ xs: "column", md: "row" }}
+      spacing={2}
+      mb={2}
+      alignItems="stretch"
+    >
+      <TextField
+        size="small"
+        label="Pretraga"
+        placeholder="Naziv ili opis…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        sx={{ minWidth: 220 }}
+      />
+
+      <TextField
+        select
+        size="small"
+        label="Tip događaja"
+        value={type ?? ""}
+        onChange={(e) =>
+          onTypeChange((e.target.value || undefined) as EventFilters["type"])
+        }
+        sx={{ minWidth: 180 }}
       >
-        <TextField
-          label="Pretraga"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          size="small"
-        />
+        <MenuItem value="">Svi</MenuItem>
+        {Object.values(EventType).map((t) => (
+          <MenuItem key={t} value={t}>
+            {EventTypeLabels[t]}
+          </MenuItem>
+        ))}
+      </TextField>
 
-        <TextField
-          select
-          label="Tip"
-          value={type}
-          onChange={(e) => setType(e.target.value as EventType | "")}
-          size="small"
-          sx={{ minWidth: 160 }}
-        >
-          <MenuItem value="">Svi</MenuItem>
-          {Object.values(EventType).map((t) => (
-            <MenuItem key={t} value={t}>
-              {EventTypeLabels[t]}
-            </MenuItem>
-          ))}
-        </TextField>
+      <TextField
+        select
+        size="small"
+        label="Institucija"
+        value={institutionId ?? ""}
+        onChange={(e) => onInstitutionChange(e.target.value || undefined)}
+        sx={{ minWidth: 220 }}
+      >
+        <MenuItem value={DEFAULT_INSTITUTION_ID}>
+          {DEFAULT_INSTITUTION_ID}
+        </MenuItem>
+        {institutions.map((inst) => (
+          <MenuItem key={inst.id} value={inst.id}>
+            {inst.name}
+          </MenuItem>
+        ))}
+      </TextField>
 
-        <CustomDatePicker
-          label="Od"
-          value={from}
-          onChange={(val) => setFrom(val)}
-          format={DateFormat.DATE}
-          slotProps={{ textField: { size: "small" } }}
-          pickerType="date"
-        />
+      <DatePicker
+        label="Od datuma"
+        value={from}
+        onChange={onFromChange}
+        slotProps={{ textField: { size: "small" } }}
+      />
+      <DatePicker
+        label="Do datuma"
+        value={to}
+        onChange={onToChange}
+        slotProps={{ textField: { size: "small" } }}
+      />
 
-        <CustomDatePicker
-          label="Do"
-          value={to}
-          onChange={(val) => setTo(val)}
-          format={DateFormat.DATE}
-          slotProps={{ textField: { size: "small" } }}
-          pickerType="date"
-        />
-
-        <FormControl sx={{ minWidth: 220 }} size="small">
-          <InputLabel id="inst-filter-label">Institucija</InputLabel>
-          <Select
-            labelId="inst-filter-label"
-            label="Institucija"
-            value={institutionId}
-            onChange={(e) => setInstitutionId(e.target.value)}
-          >
-            <MenuItem value={DEFAULT_INSTITUTION_ID}>
-              {DEFAULT_INSTITUTION_ID}
-            </MenuItem>
-            {institutions.map((inst) => (
-              <MenuItem key={inst.id} value={inst.id}>
-                {inst.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Button type="submit" variant="contained">
-          Primeni
-        </Button>
-      </Grid>
-    </Box>
+      <Button variant="contained" color="warning" onClick={clearAll}>
+        Poništi
+      </Button>
+    </Stack>
   );
 };

@@ -35,3 +35,10 @@ api.interceptors.response.use(
     return Promise.reject(err);
   }
 );
+
+export type Paginated<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
