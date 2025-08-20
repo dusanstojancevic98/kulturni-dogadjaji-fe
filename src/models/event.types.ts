@@ -1,3 +1,5 @@
+import type { Institution } from "./institution.types";
+
 export enum EventType {
   CONCERT = "CONCERT",
   EXHIBITION = "EXHIBITION",
@@ -23,6 +25,8 @@ export type EditableEventFields = Pick<
   | "institutionId"
 >;
 
+export type EventRating = { avg: number; count: number };
+
 export type Event = {
   id: string;
   title: string;
@@ -33,15 +37,10 @@ export type Event = {
   imageUrl: string;
   createdById: string;
   institutionId: string;
-  institution?: {
-    id: string;
-    name: string;
-    type: string;
-    address?: string;
-    contactEmail?: string;
-  };
+  institution?: Institution;
   createdBy?: { id: string; name: string; email: string };
   _count?: { favorites: number; reservations: number };
+  rating?: EventRating;
 };
 
 export type EventFilters = {

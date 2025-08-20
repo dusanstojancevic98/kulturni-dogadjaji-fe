@@ -15,6 +15,7 @@ export const useZustandAuth = () => {
       password,
     });
     setAuth(user, accessToken, refreshToken, true);
+    return user;
   };
 
   const getAccessToken = () => accessToken;

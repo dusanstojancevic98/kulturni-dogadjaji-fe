@@ -1,5 +1,5 @@
 import { Box, Button, Container, Grid, Typography } from "@mui/material";
-import { EventCard } from "@src/components/Events/EventCard";
+import { EventCard } from "@src/components/events/EventCard";
 import { ROUTES } from "@src/constants/routes";
 import type { Event } from "@src/models/event.types";
 import { getMyEvents } from "@src/services/events.api";

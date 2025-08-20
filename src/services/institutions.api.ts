@@ -2,6 +2,7 @@ import type {
   Institution,
   InstitutionFilters,
   InstitutionOption,
+  InstitutionWithDistance,
   PaginatedInstitutions,
 } from "@src/models/institution.types";
 import { api } from "@src/services/api";
@@ -47,4 +48,15 @@ export const getInstitutionsSelect = async (
 ): Promise<InstitutionOption[]> => {
   const res = await api.get("/institutions/select", { params: { q } });
   return res.data as InstitutionOption[];
+};
+
+export const getInstitutionsNear = async (
+  lat: number,
+  lng: number,
+  radiusKm = 10
+): Promise<InstitutionWithDistance[]> => {
+  const res = await api.get("/institutions/near", {
+    params: { lat, lng, radiusKm },
+  });
+  return res.data as InstitutionWithDistance[];
 };

@@ -3,9 +3,11 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { store } from "@src/store/redux/store";
 import "dayjs/locale/sr";
+import "leaflet/dist/leaflet.css";
 import { Provider } from "react-redux";
 import { SnackbarProvider } from "./components/common/snackbar/SnachbarProvider";
 import { AppRoutes } from "./routes";
+import "leaflet/dist/leaflet.css";
 
 const theme = createTheme({
   palette: {

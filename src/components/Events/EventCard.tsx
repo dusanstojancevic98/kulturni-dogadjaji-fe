@@ -7,6 +7,7 @@ import {
   CardMedia,
   Chip,
   IconButton,
+  Rating,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -60,6 +61,26 @@ export const EventCard = ({
           image={event.imageUrl}
           alt={event.title}
         />
+      )}
+
+      {event.rating && (
+        <Box
+          mt={1}
+          display="flex"
+          justifyContent={"center"}
+          alignItems="center"
+          gap={0.5}
+        >
+          <Rating
+            value={event.rating.avg}
+            precision={0.5}
+            readOnly
+            size="small"
+          />
+          <Typography variant="caption" color="text.secondary">
+            {event.rating.avg.toFixed(1)} ({event.rating.count})
+          </Typography>
+        </Box>
       )}
 
       {onToggleFavorite && (

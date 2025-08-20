@@ -28,6 +28,7 @@ export const useReduxAuth = () => {
 
     localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(user));
+    return user;
   };
 
   const setAuth = (user: User, accessToken: string, refreshToken: string) => {

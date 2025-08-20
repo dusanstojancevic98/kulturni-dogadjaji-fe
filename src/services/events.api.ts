@@ -2,9 +2,9 @@ import type {
   EditableEventFields,
   Event,
   EventFilters,
-  Paginated,
+  EventRating,
 } from "@src/models/event.types";
-import { api } from "@src/services/api";
+import { api, type Paginated } from "@src/services/api";
 
 export const getEvents = async (
   page = 1,
@@ -51,4 +51,9 @@ export const deleteEvent = async (id: string): Promise<{ ok: true }> => {
 export const getMyEvents = async (): Promise<Event[]> => {
   const res = await api.get("/events/my");
   return res.data;
+};
+
+export const getEventRating = async (eventId: string): Promise<EventRating> => {
+  const res = await api.get(`/events/${eventId}/rating`);
+  return res.data as EventRating;
 };

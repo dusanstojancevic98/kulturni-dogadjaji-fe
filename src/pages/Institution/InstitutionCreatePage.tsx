@@ -3,7 +3,7 @@ import { useSnack } from "@src/components/common/snackbar/SnachbarProvider";
 import {
   InstitutionForm,
   type InstitutionFormValues,
-} from "@src/components/Institutions/InstitutionForm";
+} from "@src/components/institutions/InstitutionForm";
 import { ROUTES } from "@src/constants/routes";
 import { createInstitution } from "@src/services/institutions.api";
 import { useNavigate } from "react-router-dom";

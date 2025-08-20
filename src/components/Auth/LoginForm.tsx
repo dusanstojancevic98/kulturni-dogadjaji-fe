@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { ROUTES } from "@src/constants/routes";
+import { UserRole } from "@src/store/auth/auth.state";
 import { useAuth } from "@src/store/auth/auth.store";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -27,8 +28,12 @@ export const LoginForm = () => {
 
   const onSubmit = async (data: LoginInput) => {
     try {
-      await login(data.email, data.password);
-      navigate(ROUTES.DASHBOARD);
+      const user = await login(data.email, data.password);
+      if (user.role === UserRole.VISITOR) {
+        navigate(ROUTES.EVENTS);
+      } else {
+        navigate(ROUTES.DASHBOARD);
+      }
     } catch {
       setError("email", { message: "Pogrešan email ili lozinka" });
       setError("password", { message: " " });

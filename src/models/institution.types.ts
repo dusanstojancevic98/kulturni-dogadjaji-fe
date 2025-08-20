@@ -15,6 +15,8 @@ export type Institution = {
   contactEmail: string;
   imageUrl: string;
   _count?: { events: number };
+  latitude?: number | null;
+  longitude?: number | null;
   events?: Array<{
     id: string;
     title: string;
@@ -31,6 +33,13 @@ export type InstitutionFilters = {
   type?: InstitutionType;
   page?: number;
   pageSize?: number;
+};
+
+export type InstitutionWithDistance = Institution & {
+  latitude?: number | null;
+  longitude?: number | null;
+  _count?: { events: number };
+  distanceKm: number;
 };
 
 export type PaginatedInstitutions = {

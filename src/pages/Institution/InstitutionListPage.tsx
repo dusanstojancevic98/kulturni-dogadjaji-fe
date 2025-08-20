@@ -10,7 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { InstitutionCard } from "@src/components/Institutions/InstitutionCard";
+import { InstitutionCard } from "@src/components/institutions/InstitutionCard";
 import { ROUTES } from "@src/constants/routes";
 import type {
   Institution,

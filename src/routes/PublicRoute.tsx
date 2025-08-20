@@ -10,7 +10,6 @@ type Props = {
 
 export const PublicRoute = ({ children }: Props) => {
   const { accessToken, authInitialized } = useAuth();
-  console.log("PublicRoute accessToken:", authInitialized);
   if (!authInitialized) {
     return (
       <Box

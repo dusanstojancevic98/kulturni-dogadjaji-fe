@@ -10,8 +10,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { EventCard } from "@src/components/Events/EventCard";
-import { EventFiltersBar } from "@src/components/Events/EventFilter";
+import { EventCard } from "@src/components/events/EventCard";
+import { EventFiltersBar } from "@src/components/events/EventFilter";
 import { ROUTES } from "@src/constants/routes";
 import type { Event, EventFilters } from "@src/models/event.types";
 import type { Paginated } from "@src/services/api";

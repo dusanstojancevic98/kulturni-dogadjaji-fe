@@ -1,6 +1,6 @@
 import { Box, Button, Container, Grid, Stack, Typography } from "@mui/material";
 import { useSnack } from "@src/components/common/snackbar/SnachbarProvider";
-import { EventCard } from "@src/components/Events/EventCard";
+import { EventCard } from "@src/components/events/EventCard";
 import { ROUTES } from "@src/constants/routes";
 import type { Event } from "@src/models/event.types";
 import {

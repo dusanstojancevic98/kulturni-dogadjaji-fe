@@ -11,7 +11,6 @@ export const useAuthInit = () => {
   useEffect(() => {
     const checkRefresh = async () => {
       const success = await tryRefreshToken();
-      console.log(success);
       if (!success) {
         logout();
         navigate(ROUTES.LOGIN, { replace: true });

@@ -3,7 +3,7 @@ import { useSnack } from "@src/components/common/snackbar/SnachbarProvider";
 import {
   InstitutionForm,
   type InstitutionFormValues,
-} from "@src/components/Institutions/InstitutionForm";
+} from "@src/components/institutions/InstitutionForm";
 import { ROUTES } from "@src/constants/routes";
 import type { Institution } from "@src/models/institution.types";
 import {
