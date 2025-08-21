@@ -7,12 +7,10 @@ import type {
 import { api, type Paginated } from "@src/services/api";
 
 export const getEvents = async (
-  page = 1,
-  pageSize = 12,
   filters: EventFilters = {}
 ): Promise<Paginated<Event>> => {
   const res = await api.get("/events", {
-    params: { page, pageSize, ...filters },
+    params: { ...filters },
   });
   return res.data;
 };
@@ -22,7 +20,7 @@ export const getEventById = async (id: string): Promise<Event> => {
   return res.data;
 };
 
-export const createEvent = async (payload: {
+export type CreateEventPayload = {
   title: string;
   description: string;
   dateTime: string;
@@ -30,7 +28,11 @@ export const createEvent = async (payload: {
   capacity: number;
   imageUrl: string;
   institutionId: string;
-}): Promise<Event> => {
+};
+
+export const createEvent = async (
+  payload: CreateEventPayload
+): Promise<Event> => {
   const res = await api.post("/events", payload);
   return res.data;
 };

@@ -11,8 +11,9 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { ROUTES } from "@src/constants/routes";
 import { EventType, EventTypeLabels } from "@src/models/event.types";
 import type { InstitutionOption } from "@src/models/institution.types";
-import { getEventById, updateEvent } from "@src/services/events.api";
+import { getEventById } from "@src/services/events.api";
 import { getInstitutionsSelect } from "@src/services/institutions.api";
+import { eventsController } from "@src/store/events/event.controller";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -67,7 +68,7 @@ export const EventEditPage = () => {
   }, [id, reset, setValue]);
 
   const onSubmit = async (data: EditEventInput) => {
-    await updateEvent(id!, {
+    eventsController.update(id!, {
       ...data,
       dateTime: dayjs(data.dateTime).toISOString(),
     });

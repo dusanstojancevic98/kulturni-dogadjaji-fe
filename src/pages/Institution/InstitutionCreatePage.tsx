@@ -5,7 +5,7 @@ import {
   type InstitutionFormValues,
 } from "@src/components/institutions/InstitutionForm";
 import { ROUTES } from "@src/constants/routes";
-import { createInstitution } from "@src/services/institutions.api";
+import { institutionsController } from "@src/store/institutions/institutions.controller";
 import { useNavigate } from "react-router-dom";
 
 export const InstitutionCreatePage = () => {
@@ -14,7 +14,7 @@ export const InstitutionCreatePage = () => {
 
   const onSubmit = async (data: InstitutionFormValues) => {
     try {
-      const created = await createInstitution(data);
+      const created = await institutionsController.create(data);
       snack.success("Institucija kreirana");
       navigate(ROUTES.INSTITUTION_DETAIL(created.id));
     } catch {

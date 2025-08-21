@@ -8,12 +8,10 @@ import type {
 import { api } from "@src/services/api";
 
 export const getInstitutions = async (
-  page = 1,
-  pageSize = 12,
-  filters: Omit<InstitutionFilters, "page" | "pageSize"> = {}
+  filters: InstitutionFilters = {}
 ): Promise<PaginatedInstitutions> => {
   const res = await api.get("/institutions", {
-    params: { page, pageSize, ...filters },
+    params: { ...filters },
   });
   return res.data as PaginatedInstitutions;
 };
@@ -23,8 +21,13 @@ export const getInstitutionById = async (id: string): Promise<Institution> => {
   return res.data as Institution;
 };
 
+export type CreateInstitutionPayload = Omit<
+  Institution,
+  "id" | "_count" | "events"
+>;
+
 export const createInstitution = async (
-  payload: Omit<Institution, "id" | "_count" | "events">
+  payload: CreateInstitutionPayload
 ): Promise<Institution> => {
   const res = await api.post("/institutions", payload);
   return res.data as Institution;

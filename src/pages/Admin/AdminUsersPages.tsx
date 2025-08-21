@@ -26,43 +26,24 @@ import type { AdminUser } from "@src/models/user.types";
 import {
   createUser,
   deleteUser,
-  listUsers,
   updateUser,
-  type QueryUsers,
 } from "@src/services/adminUsers.api";
+import {
+  adminUsersController,
+  useAdminUsers,
+} from "@src/store/adminUsers/adminUsers.controller";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { UserRole, UserRoleLabel } from "@src/store/auth/auth.state";
-import { useAuth } from "@src/store/auth/auth.store";
 import { useEffect, useState } from "react";
 
 export const AdminUsersPage = () => {
   const snack = useSnack();
-  const [data, setData] = useState<AdminUser[]>([]);
-  const [total, setTotal] = useState(0);
-  const [q, setQ] = useState("");
-  const [role, setRole] = useState<UserRole | "">("");
-  const [page] = useState(1);
-  const [pageSize] = useState(50);
   const { user: me } = useAuth();
-
-  const load = async () => {
-    const params: QueryUsers = {
-      q: q || undefined,
-      role: (role as AdminUser["role"]) || undefined,
-      page,
-      pageSize,
-    };
-    const res = await listUsers(params);
-    setData(res.items);
-    setTotal(res.total);
-  };
+  const { filters, items, total } = useAdminUsers();
 
   useEffect(() => {
-    void load();
-  }, [page, pageSize, q, role]);
-
-  const applyFilters = async () => {
-    await load();
-  };
+    adminUsersController.load();
+  }, [filters]);
 
   const [openEdit, setOpenEdit] = useState<AdminUser | null>(null);
   const [openCreate, setOpenCreate] = useState(false);
@@ -99,7 +80,7 @@ export const AdminUsersPage = () => {
     });
     setOpenCreate(false);
     snack.success("Korisnik kreiran");
-    await load();
+    adminUsersController.load();
   };
 
   const submitEdit = async () => {
@@ -112,7 +93,7 @@ export const AdminUsersPage = () => {
     });
     setOpenEdit(null);
     snack.success("Korisnik izmenjen");
-    await load();
+    adminUsersController.load();
   };
 
   const submitDelete = async () => {
@@ -120,7 +101,7 @@ export const AdminUsersPage = () => {
     await deleteUser(openDelete.id);
     setOpenDelete(null);
     snack.success("Korisnik obrisan");
-    await load();
+    adminUsersController.load();
   };
 
   return (
@@ -145,22 +126,24 @@ export const AdminUsersPage = () => {
         <TextField
           size="small"
           label="Pretraga"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onBlur={applyFilters}
+          value={filters.q}
+          onChange={(e) =>
+            adminUsersController.setFilters({ q: e.target.value })
+          }
         />
         <TextField
           select
           size="small"
           label="Uloga"
-          value={role}
+          value={filters.role}
           onChange={(e) => {
-            setRole(e.target.value as UserRole);
-            void applyFilters();
+            adminUsersController.setFilters({
+              role: e.target.value as UserRole,
+            });
           }}
           sx={{ minWidth: 180 }}
         >
-          <MenuItem value="">Sve</MenuItem>
+          <MenuItem>Sve</MenuItem>
           {Object.values(UserRole).map((r) => (
             <MenuItem key={r} value={r}>
               {UserRoleLabel[r]}
@@ -180,7 +163,7 @@ export const AdminUsersPage = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((u) => (
+          {items.map((u) => (
             <TableRow key={u.id} hover>
               <TableCell>{u.name}</TableCell>
               <TableCell>{u.email}</TableCell>

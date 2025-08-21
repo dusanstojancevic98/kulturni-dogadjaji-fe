@@ -26,8 +26,8 @@ import {
 } from "@mui/material";
 import { ROUTES } from "@src/constants/routes";
 import { useAuthInit } from "@src/hooks/useAuthInit";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { UserRole } from "@src/store/auth/auth.state";
-import { useAuth } from "@src/store/auth/auth.store";
 import React from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { LogoutButton } from "./LogoutButton";

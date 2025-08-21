@@ -27,9 +27,13 @@ export const createUser = async (payload: {
   return res.data as AdminUser;
 };
 
+export type UpdateUserPayload = Partial<
+  Pick<AdminUser, "name" | "email" | "role" | "isActive">
+>;
+
 export const updateUser = async (
   id: string,
-  payload: Partial<Pick<AdminUser, "name" | "email" | "role" | "isActive">>
+  payload: UpdateUserPayload
 ): Promise<AdminUser> => {
   const res = await api.patch(`/admin/users/${id}`, payload);
   return res.data as AdminUser;

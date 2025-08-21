@@ -1,24 +1,25 @@
-import { Box, Button, Container, Grid, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Grid,
+  Typography,
+} from "@mui/material";
 import { EventCard } from "@src/components/events/EventCard";
 import { ROUTES } from "@src/constants/routes";
-import type { Event } from "@src/models/event.types";
-import { getMyEvents } from "@src/services/events.api";
-import { useEffect, useState } from "react";
+import {
+  eventsController,
+  useEvents,
+} from "@src/store/events/event.controller";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export const MyEventsPage = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items: events, loading } = useEvents();
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getMyEvents();
-        setEvents(data);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    eventsController.loadMine();
   }, []);
 
   return (
@@ -36,7 +37,14 @@ export const MyEventsPage = () => {
       </Box>
 
       {loading ? (
-        <Typography>Učitavanje...</Typography>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="100vh"
+        >
+          <CircularProgress size={48} />
+        </Box>
       ) : events.length === 0 ? (
         <Typography>Nemaš još kreiranih događaja.</Typography>
       ) : (

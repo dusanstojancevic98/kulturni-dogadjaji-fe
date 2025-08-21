@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { ROUTES } from "@src/constants/routes";
 import { EventTypeLabels, type Event } from "@src/models/event.types";
-import { useAuth } from "@src/store/auth/auth.store";
+import { useAuth } from "@src/store/auth/auth.controller";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 

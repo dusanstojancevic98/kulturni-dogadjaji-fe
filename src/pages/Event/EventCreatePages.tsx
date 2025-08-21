@@ -15,8 +15,8 @@ import { ROUTES } from "@src/constants/routes";
 import { DateFormat } from "@src/helper/date";
 import { EventType, EventTypeLabels } from "@src/models/event.types";
 import type { InstitutionOption } from "@src/models/institution.types";
-import { createEvent } from "@src/services/events.api";
 import { getInstitutionsSelect } from "@src/services/institutions.api";
+import { eventsController } from "@src/store/events/event.controller";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -61,7 +61,7 @@ export const EventCreatePage = () => {
 
   const onSubmit = async (data: CreateEventInput) => {
     const iso = dayjs(data.dateTime).toISOString();
-    await createEvent({ ...data, dateTime: iso });
+    eventsController.create({ ...data, dateTime: iso });
     navigate(ROUTES.EVENTS);
   };
 

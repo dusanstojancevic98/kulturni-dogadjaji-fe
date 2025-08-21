@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -19,8 +20,8 @@ import {
   deleteInstitution,
   getInstitutionById,
 } from "@src/services/institutions.api";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { UserRole } from "@src/store/auth/auth.state";
-import { useAuth } from "@src/store/auth/auth.store";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -57,7 +58,14 @@ export const InstitutionDetailPage = () => {
   if (!inst) {
     return (
       <Container sx={{ py: 4 }}>
-        <Typography>Učitavanje...</Typography>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="100vh"
+        >
+          <CircularProgress size={48} />
+        </Box>
       </Container>
     );
   }

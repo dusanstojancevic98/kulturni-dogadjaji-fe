@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -20,98 +21,86 @@ import { useSnack } from "@src/components/common/snackbar/SnachbarProvider";
 import { EventMap } from "@src/components/map/EventMap";
 import { ROUTES } from "@src/constants/routes";
 import { getDate } from "@src/helper/date";
-import { EventTypeLabels, type Event } from "@src/models/event.types";
-import type { Review } from "@src/models/review.types";
-import {
-  deleteEvent,
-  getEventById,
-  getEventRating,
-} from "@src/services/events.api";
-import { getMyFavoriteIds, toggleFavorite } from "@src/services/favorites.api";
-import {
-  cancelReservation,
-  reservationStatus,
-  reserveEvent,
-} from "@src/services/reservations.api";
-import { addReview, deleteReview, getReviews } from "@src/services/review.api";
+import { EventTypeLabels } from "@src/models/event.types";
+import { deleteEvent, getEventRating } from "@src/services/events.api";
+import { addReview } from "@src/services/review.api";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { UserRole } from "@src/store/auth/auth.state";
-import { useAuth } from "@src/store/auth/auth.store";
+import {
+  eventsController,
+  useEvents,
+} from "@src/store/events/event.controller";
+import {
+  favoritesController,
+  useFavorites,
+} from "@src/store/favorites/favorite.controller";
+import {
+  ratingController,
+  useRatings,
+} from "@src/store/rating/rating.controller";
+import {
+  reservationsController,
+  useReservations,
+} from "@src/store/reservations/reservations.controller";
+import {
+  reviewsController,
+  useReviews,
+} from "@src/store/reviews/reviews.controller";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 export const EventDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [event, setEvent] = useState<Event | null>(null);
   const navigate = useNavigate();
+  const snack = useSnack();
+
   const { user } = useAuth();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [fav, setFav] = useState(false);
-  const [reserved, setReserved] = useState(false);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
-  const [ratingAgg, setRatingAgg] = useState<{ avg: number; count: number }>({
-    avg: 0,
-    count: 0,
-  });
 
-  const snack = useSnack();
+  const event = useEvents().byId[id ?? ""] ?? null;
+  const { reservedEvents } = useReservations();
+  const reserved = reservedEvents.some((e) => e.id === id);
+
+  const { ids } = useFavorites();
+  const fav = ids.includes(id ?? "");
+
+  const ratingAgg = useRatings(event?.id);
+  const reviews = useReviews(event?.id);
 
   const canEdit =
     !!user && (user.role === UserRole.ADMIN || user.id === event?.createdById);
 
   useEffect(() => {
-    if (!id) return;
-    (async () => setEvent(await getEventById(id)))();
-  }, [id]);
-
-  useEffect(() => {
-    (async () => {
-      if (!user || !event?.id) {
-        setFav(false);
-        return;
+    if (id) {
+      eventsController.ensureDetailLoaded(id);
+      if (user) {
+        reviewsController.loadReviews(id);
+        ratingController.ensureLoaded(id);
+        favoritesController.loadMine();
+        reservationsController.loadMine();
       }
-      const ids = await getMyFavoriteIds();
-      setFav(ids.includes(event.id));
-    })();
-  }, [user, event?.id]);
-
-  useEffect(() => {
-    if (event?.id) {
-      getReviews(event.id).then(setReviews);
     }
-  }, [event?.id]);
-
-  useEffect(() => {
-    (async () => {
-      if (!user || !event?.id) {
-        setReserved(false);
-        return;
-      }
-      const st = await reservationStatus(event.id);
-      setReserved(st);
-    })();
-  }, [user, event?.id]);
-
-  useEffect(() => {
-    if (!event?.id) return;
-    (async () => {
-      const agg = await getEventRating(event.id);
-      setRatingAgg(agg);
-    })();
-  }, [event?.id]);
+  }, [id, user]);
 
   const doToggle = async () => {
     if (!event?.id) return;
-    const res = await toggleFavorite(event.id);
+    favoritesController.toggle(event.id);
     snack.info(fav ? "Uklonjeno iz omiljenih" : "Sačuvano u omiljene");
-    setFav(res);
   };
 
   if (!event)
     return (
       <Container sx={{ py: 4 }}>
-        <Typography>Učitavanje...</Typography>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="100vh"
+        >
+          <CircularProgress size={48} />
+        </Box>
       </Container>
     );
 
@@ -128,20 +117,7 @@ export const EventDetailPage = () => {
   const onReserve = async () => {
     if (!event?.id) return;
     try {
-      await reserveEvent(event.id);
-      setReserved(true);
-      setEvent((prev) =>
-        prev
-          ? {
-              ...prev,
-              _count: {
-                ...prev._count,
-                reservations: (prev._count?.reservations ?? 0) + 1,
-                favorites: prev._count?.favorites ?? 0,
-              },
-            }
-          : prev
-      );
+      reservationsController.reserve(event);
       snack.success("Rezervacija uspešna");
     } catch {
       snack.error("Greška pri rezervaciji");
@@ -151,20 +127,7 @@ export const EventDetailPage = () => {
   const onCancelReserve = async () => {
     if (!event?.id) return;
     try {
-      await cancelReservation(event.id);
-      setReserved(false);
-      setEvent((prev) =>
-        prev
-          ? {
-              ...prev,
-              _count: {
-                ...prev._count,
-                reservations: Math.max(0, (prev._count?.reservations ?? 1) - 1),
-                favorites: prev._count?.favorites ?? 0,
-              },
-            }
-          : prev
-      );
+      reservationsController.cancel(event);
       snack.success("Rezervacija otkazana");
     } catch {
       snack.error("Greška pri otkazivanju");
@@ -173,14 +136,18 @@ export const EventDetailPage = () => {
 
   const handleRating = async () => {
     if (!event?.id || !rating || !user) return;
-    const rev = await addReview(event.id, rating, comment);
-    console.log(rev);
-    setReviews([rev, ...reviews.filter((r) => r.user.id !== user.id)]);
+    await addReview(event.id, rating, comment);
+    reviewsController.addOrUpdate(event.id, rating, comment);
     const agg = await getEventRating(event.id);
-    setRatingAgg(agg);
+    ratingController.set(event.id, agg);
     setRating(null);
     setComment("");
     snack.success("Uspešno dodato");
+  };
+
+  const handleDeleteReview = (reviewId: string) => {
+    if (!event?.id) return;
+    reviewsController.remove(event.id, reviewId);
   };
 
   const lat = event?.institution?.latitude ?? null;
@@ -314,22 +281,18 @@ export const EventDetailPage = () => {
       )}
       <Box mt={3}>
         <Typography variant="h6">Komentari</Typography>
-        {reviews.map((r) => (
-          <Box key={r.id} sx={{ borderBottom: "1px solid #ddd", py: 1 }}>
+        {reviews.map((rating) => (
+          <Box key={rating.id} sx={{ borderBottom: "1px solid #ddd", py: 1 }}>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="subtitle2">{r.user.name}</Typography>
-              <Rating value={r.rating} readOnly size="small" />
+              <Typography variant="subtitle2">{rating.user.name}</Typography>
+              <Rating value={rating.rating} readOnly size="small" />
             </Stack>
-            {r.comment && <Typography>{r.comment}</Typography>}
-            {user?.id === r.user.id && (
+            {rating.comment && <Typography>{rating.comment}</Typography>}
+            {user?.id === rating.user.id && (
               <Button
                 color="error"
                 size="small"
-                onClick={async () => {
-                  await deleteReview(r.id);
-                  setReviews(reviews.filter((x) => x.id !== r.id));
-                  snack.info("Komentar obrisan");
-                }}
+                onClick={() => handleDeleteReview(rating.id)}
               >
                 Obriši
               </Button>

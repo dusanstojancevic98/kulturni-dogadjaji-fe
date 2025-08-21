@@ -14,8 +14,8 @@ import {
   getTopEvents,
   getTopInstitutions,
 } from "@src/services/analytics.api";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { UserRole } from "@src/store/auth/auth.state";
-import { useAuth } from "@src/store/auth/auth.store";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 

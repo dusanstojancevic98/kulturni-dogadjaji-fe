@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { ROUTES } from "@src/constants/routes";
 import { register } from "@src/services/auth.api";
-import { useAuth } from "@src/store/auth/auth.store";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";

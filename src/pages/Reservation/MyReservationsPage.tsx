@@ -4,36 +4,24 @@ import { EventCard } from "@src/components/events/EventCard";
 import { ROUTES } from "@src/constants/routes";
 import type { Event } from "@src/models/event.types";
 import {
-  cancelReservation,
-  myReservations,
-} from "@src/services/reservations.api";
-import { useEffect, useState } from "react";
+  reservationsController,
+  useReservations,
+} from "@src/store/reservations/reservations.controller";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export const MyReservationsPage = () => {
-  const [items, setItems] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(false);
   const snack = useSnack();
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await myReservations();
-      const events = res.map((e) => e.event);
-      setItems(events);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { reservedEvents, loaded } = useReservations();
 
   useEffect(() => {
-    void load();
+    reservationsController.loadMine();
   }, []);
 
-  const onCancel = async (id: string) => {
+  const onCancel = async (event: Event) => {
     try {
-      await cancelReservation(id);
-      setItems((prev) => prev.filter((e) => e.id !== id));
+      reservationsController.cancel(event);
       snack.success("Rezervacija otkazana");
     } catch {
       snack.error("Greška pri otkazivanju");
@@ -54,13 +42,13 @@ export const MyReservationsPage = () => {
         </Button>
       </Stack>
 
-      {loading ? (
+      {!loaded ? (
         <Typography>Učitavanje…</Typography>
-      ) : items.length === 0 ? (
+      ) : reservedEvents.length === 0 ? (
         <Typography>Nemaš aktivnih rezervacija.</Typography>
       ) : (
         <Grid container spacing={2}>
-          {items.map((ev) => (
+          {reservedEvents.map((ev) => (
             <Grid key={ev.id} size={{ xs: 12, sm: 6, md: 4 }}>
               <Box
                 sx={{
@@ -74,7 +62,7 @@ export const MyReservationsPage = () => {
                   <Button
                     color="warning"
                     variant="outlined"
-                    onClick={() => void onCancel(ev.id)}
+                    onClick={() => onCancel(ev)}
                   >
                     Otkaži rezervaciju
                   </Button>

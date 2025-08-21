@@ -2,6 +2,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Container,
   Grid,
   MenuItem,
@@ -15,74 +16,61 @@ import { ROUTES } from "@src/constants/routes";
 import type {
   Institution,
   InstitutionFilters,
-  PaginatedInstitutions,
+  InstitutionType,
 } from "@src/models/institution.types";
-import {
-  InstitutionTypeLabels,
-  type InstitutionType,
-} from "@src/models/institution.types";
-import { getInstitutions } from "@src/services/institutions.api";
+import { InstitutionTypeLabels } from "@src/models/institution.types";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { UserRole } from "@src/store/auth/auth.state";
-import { useAuth } from "@src/store/auth/auth.store";
-import { useEffect, useMemo, useState } from "react";
+import {
+  institutionsController,
+  useInstitutions,
+} from "@src/store/institutions/institutions.controller";
+import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 const PAGE_SIZES = [6, 12, 24];
 
 export const InstitutionListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const pageFromUrl = Math.max(
-    1,
-    parseInt(searchParams.get("page") || "1", 10)
-  );
-  const sizeFromUrl = parseInt(searchParams.get("pageSize") || "12", 10);
 
-  const [data, setData] = useState<PaginatedInstitutions>({
-    items: [],
-    total: 0,
-    page: pageFromUrl,
-    pageSize: sizeFromUrl,
-  });
-  const [loading, setLoading] = useState(false);
+  const { items, loading, filters, total } = useInstitutions();
+  const { q, type, page, pageSize } = filters;
 
-  const filters: InstitutionFilters = useMemo(() => {
-    const q = searchParams.get("q") || undefined;
-    const type =
-      (searchParams.get("type") as InstitutionType | null) || undefined;
-    return { q, type };
-  }, [searchParams]);
+  const getFilters = () => {
+    const searchFilters: InstitutionFilters = {};
 
-  const page = pageFromUrl;
-  const pageSize = useMemo(
-    () => (PAGE_SIZES.includes(sizeFromUrl) ? sizeFromUrl : 12),
-    [sizeFromUrl]
-  );
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await getInstitutions(page, pageSize, filters);
-      setData(res);
-    } finally {
-      setLoading(false);
+    for (const k of [
+      "q",
+      "type",
+      "pageSize",
+      "page",
+    ] as (keyof InstitutionFilters)[]) {
+      const v = searchParams.get(k);
+      if (v) (searchFilters as any)[k] = v;
     }
+    return searchFilters;
   };
 
   useEffect(() => {
-    void load();
-  }, [page, pageSize, JSON.stringify(filters)]);
+    institutionsController.loadList();
+  }, [filters]);
+  useEffect(() => {
+    institutionsController.setFilters(getFilters());
+  }, [searchParams]);
 
-  const applyFilters = (f: InstitutionFilters) => {
+  const applyFilters = (f: Partial<InstitutionFilters>) => {
+    const newFilters = { ...filters, ...f };
+    console.log(filters, f, newFilters);
     const next = new URLSearchParams(searchParams);
     next.set("page", "1");
-    if (f.q) {
-      next.set("q", f.q);
+    if (newFilters.q) {
+      next.set("q", newFilters.q);
     } else {
       next.delete("q");
     }
 
-    if (f.type) {
-      next.set("type", f.type);
+    if (newFilters.type) {
+      next.set("type", String(newFilters.type));
     } else {
       next.delete("type");
     }
@@ -97,10 +85,15 @@ export const InstitutionListPage = () => {
   };
 
   const onPageSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = new URLSearchParams(searchParams);
-    next.set("pageSize", e.target.value);
-    next.set("page", "1");
-    setSearchParams(next, { replace: true });
+    applyFilters({ pageSize: Number(e.target.value) });
+  };
+
+  const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFilters({ type: (e.target.value || undefined) as InstitutionType });
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyFilters({ q: e.target.value || undefined });
   };
 
   const { user } = useAuth();
@@ -148,27 +141,18 @@ export const InstitutionListPage = () => {
         <TextField
           size="small"
           label="Pretraga"
-          defaultValue={filters.q ?? ""}
-          onBlur={(e) =>
-            applyFilters({ ...filters, q: e.target.value || undefined })
-          }
+          defaultValue={q}
+          onChange={handleSearch}
         />
         <TextField
           select
           size="small"
           label="Tip"
-          defaultValue={filters.type ?? ""}
-          onChange={(e) =>
-            applyFilters({
-              ...filters,
-              type: (e.target.value || undefined) as
-                | InstitutionType
-                | undefined,
-            })
-          }
+          defaultValue={type}
+          onChange={handleTypeChange}
           sx={{ minWidth: 200 }}
         >
-          <MenuItem value="">Svi</MenuItem>
+          <MenuItem>Svi</MenuItem>
           {Object.entries(InstitutionTypeLabels).map(([val, label]) => (
             <MenuItem key={val} value={val}>
               {label}
@@ -178,13 +162,20 @@ export const InstitutionListPage = () => {
       </Stack>
 
       {loading ? (
-        <Typography>Učitavanje...</Typography>
-      ) : data.items.length === 0 ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="100vh"
+        >
+          <CircularProgress size={48} />
+        </Box>
+      ) : items.length === 0 ? (
         <Typography>Nema rezultata za zadate filtere.</Typography>
       ) : (
         <>
           <Grid container spacing={2}>
-            {data.items.map((inst: Institution) => (
+            {items.map((inst: Institution) => (
               <Grid key={inst.id} size={{ xs: 12, sm: 6, md: 4 }}>
                 <InstitutionCard institution={inst} />
               </Grid>
@@ -193,8 +184,8 @@ export const InstitutionListPage = () => {
 
           <Box display="flex" justifyContent="center" mt={3}>
             <Pagination
-              page={data.page}
-              count={Math.max(1, Math.ceil(data.total / data.pageSize))}
+              page={page}
+              count={Math.max(1, Math.ceil(total / (pageSize ?? 12)))}
               onChange={onPageChange}
             />
           </Box>

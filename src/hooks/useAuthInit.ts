@@ -1,6 +1,6 @@
 import { ROUTES } from "@src/constants/routes";
 import { tryRefreshToken } from "@src/services/refreshToken";
-import { useAuth } from "@src/store/auth/auth.store";
+import { useAuth } from "@src/store/auth/auth.controller";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 

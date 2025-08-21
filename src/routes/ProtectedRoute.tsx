@@ -1,7 +1,7 @@
 import { Box, CircularProgress } from "@mui/material";
 import { ROUTES } from "@src/constants/routes";
+import { useAuth } from "@src/store/auth/auth.controller";
 import type { UserRole } from "@src/store/auth/auth.state";
-import { useAuth } from "@src/store/auth/auth.store";
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 

@@ -4,7 +4,9 @@ import {
   setAuth as setAuthRedux,
 } from "../redux/slices/auth.slice";
 import { store as reduxStore } from "../redux/store";
+import { useReduxAuth } from "../redux/useAuth";
 import { authStore as zustandStore } from "../zustand/auth.store";
+import { useZustandAuth } from "../zustand/useAuth";
 import type { User } from "./auth.state";
 
 export const authController = {
@@ -68,4 +70,11 @@ export const authController = {
       authController.setAuth(user, "", refreshToken);
     }
   },
+};
+
+export const useAuth = () => {
+  const redux = useReduxAuth();
+  const zustand = useZustandAuth();
+
+  return featureFlags.useRedux ? redux : zustand;
 };
