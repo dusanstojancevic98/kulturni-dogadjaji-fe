@@ -2,6 +2,7 @@ import { Button, MenuItem, Paper, Stack, TextField } from "@mui/material";
 import type { InstitutionType } from "@src/models/institution.types";
 import { InstitutionTypeLabels } from "@src/models/institution.types";
 import { useForm } from "react-hook-form";
+import { AddressPicker } from "../map/AddressPicker";
 
 export type InstitutionFormValues = {
   name: string;
@@ -10,6 +11,8 @@ export type InstitutionFormValues = {
   address: string;
   contactEmail: string;
   imageUrl: string;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type Props = {
@@ -29,6 +32,8 @@ export const InstitutionForm = ({
     handleSubmit,
     register,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm<InstitutionFormValues>({
     defaultValues: {
       name: "",
@@ -37,9 +42,15 @@ export const InstitutionForm = ({
       address: "",
       contactEmail: "",
       imageUrl: "",
+      latitude: null,
+      longitude: null,
       ...defaultValues,
     },
   });
+
+  const address = watch("address");
+  const latitude = watch("latitude");
+  const longitude = watch("longitude");
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -81,11 +92,18 @@ export const InstitutionForm = ({
               )
             )}
           </TextField>
-          <TextField
-            label="Adresa"
-            {...register("address", { required: "Obavezno" })}
-            error={!!errors.address}
-            helperText={errors.address?.message}
+          <AddressPicker
+            value={{
+              address,
+              latitude,
+              longitude,
+            }}
+            onChange={(next) => {
+              console.log(next);
+              setValue("address", next.address);
+              setValue("latitude", next.latitude);
+              setValue("longitude", next.longitude);
+            }}
           />
           <TextField
             label="Kontakt email"
