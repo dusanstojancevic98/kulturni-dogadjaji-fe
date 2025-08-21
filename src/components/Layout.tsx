@@ -66,6 +66,12 @@ export default function AppLayout() {
           >
             <Box sx={{ width: 250 }} onClick={() => setOpen(false)}>
               <List>
+                <ListItemButton component={Link} to={ROUTES.EVENTS}>
+                  <ListItemIcon>
+                    <EventIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Događaji" />
+                </ListItemButton>
                 {user ? (
                   <>
                     <ListItemButton component={Link} to={ROUTES.DASHBOARD}>
@@ -80,13 +86,6 @@ export default function AppLayout() {
                         <AccountCircleIcon />
                       </ListItemIcon>
                       <ListItemText primary="Moj profil" />
-                    </ListItemButton>
-
-                    <ListItemButton component={Link} to={ROUTES.EVENTS}>
-                      <ListItemIcon>
-                        <EventIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Događaji" />
                     </ListItemButton>
 
                     <ListItemButton component={Link} to={ROUTES.MY_FAVORITES}>
